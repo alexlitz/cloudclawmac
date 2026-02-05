@@ -14,6 +14,7 @@ import { authRoutes } from './routes/auth.js'
 import { vmRoutes } from './routes/vms.js'
 import { tenantRoutes } from './routes/tenants.js'
 import { healthRoutes } from './routes/health.js'
+import { setupRoutes } from './routes/setup.js'
 
 // Load environment variables
 dotenv.config()
@@ -52,6 +53,7 @@ fastify.decorate('requireCredits', requireCredits)
 
 // Register routes
 await fastify.register(healthRoutes, { prefix: '/health' })
+await fastify.register(setupRoutes, { prefix: '/api/setup' })
 await fastify.register(authRoutes, { prefix: '/api/auth' })
 await fastify.register(tenantRoutes, { prefix: '/api/tenants' })
 await fastify.register(vmRoutes, { prefix: '/api/tenants/:tenantId/vms' })

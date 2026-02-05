@@ -4,17 +4,20 @@ import { LoginPage } from './pages/LoginPage.jsx'
 import { RegisterPage } from './pages/RegisterPage.jsx'
 import { DashboardPage } from './pages/DashboardPage.jsx'
 import { OnboardingPage } from './pages/OnboardingPage.jsx'
+import { SetupPage } from './pages/SetupPage.jsx'
 import { Header } from './components/Header.jsx'
 
 function App() {
   const location = useLocation()
+  const isSetup = location.pathname.startsWith('/setup')
   const isDashboard = location.pathname.startsWith('/dashboard')
 
   return (
     <div className="app">
-      {!isDashboard && <Header />}
+      {!isSetup && !isDashboard && <Header />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/setup" element={<SetupPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
