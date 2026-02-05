@@ -23,6 +23,7 @@ function App() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/vms" element={<DashboardPage activeTab="vms" />} />
+        <Route path="/dashboard/audit" element={<DashboardPage activeTab="audit" />} />
         <Route path="/dashboard/billing" element={<DashboardPage activeTab="billing" />} />
         <Route path="/dashboard/settings" element={<DashboardPage activeTab="settings" />} />
       </Routes>
