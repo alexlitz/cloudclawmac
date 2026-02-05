@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { authApi } from '../api.js'
+import { authApi, APIError, AuthError } from '../api.js'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,15 +17,18 @@ export function LoginPage() {
     try {
       const data = await authApi.login(email, password)
 
-      // Store token and user data
-      localStorage.setItem('token', data.token)
+      // Store user data (token is stored in httpOnly cookie)
       localStorage.setItem('user', JSON.stringify(data.user))
       localStorage.setItem('tenants', JSON.stringify(data.tenants))
 
       // Navigate to dashboard
       navigate('/dashboard')
     } catch (err) {
-      setError(err.message || 'Login failed')
+      if (err instanceof AuthError || err instanceof APIError) {
+        setError(err.message)
+      } else {
+        setError('Login failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -39,40 +42,54 @@ export function LoginPage() {
       </div>
 
       {error && (
-        <div style={{
-          background: 'rgba(239, 68, 68, 0.1)',
-          border: '1px solid var(--error)',
-          borderRadius: 'var(--radius)',
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          color: 'var(--error)'
-        }}>
+        <div
+          role="alert"
+          aria-live="polite"
+          style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--error)',
+            borderRadius: 'var(--radius)',
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            color: 'var(--error)'
+          }}
+        >
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">Email</label>
+          <label htmlFor="email" className="form-label">
+            Email
+          </label>
           <input
+            id="email"
             type="email"
             className="form-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            autoComplete="email"
             required
+            disabled={loading}
           />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Password</label>
+          <label htmlFor="password" className="form-label">
+            Password
+          </label>
           <input
+            id="password"
             type="password"
             className="form-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
+            autoComplete="current-password"
             required
+            disabled={loading}
           />
         </div>
 
@@ -81,6 +98,7 @@ export function LoginPage() {
           className="btn btn-primary"
           style={{ width: '100%' }}
           disabled={loading}
+          aria-busy={loading}
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
