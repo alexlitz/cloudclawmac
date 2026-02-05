@@ -206,8 +206,9 @@ export const tenantQueries = {
     RETURNING *
   `,
 
-  findByUserId: (userId) => `
-    SELECT * FROM tenants WHERE user_id = '${userId}'
+  // Fixed: Use parameterized query instead of string interpolation
+  findByUserId: `
+    SELECT * FROM tenants WHERE user_id = $1
   `,
 
   findByUserIdWithRLS: `

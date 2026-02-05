@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 import { vmQueries, tenantQueries, sessionQueries } from '../models/db.js'
 import { getOrkaClient } from '../services/orka.js'
+import { generateConnectionCredentials } from '../services/ssh.js'
 
 const createVMSchema = z.object({
   name: z.string().min(1).max(50).optional(),
@@ -300,15 +301,19 @@ export async function vmRoutes(fastify, options) {
       })
     }
 
+    // Generate one-time credentials (valid for 5 minutes)
+    const credentials = await generateConnectionCredentials(fastify.pg, vmId)
+
     // Return SSH connection details
     return {
       connection: {
         host: vm.ip_address,
         port: vm.ssh_port || 22,
         username: 'admin',
-        // In production, you'd generate a one-time password or SSH key
-        password: 'TODO-one-time-password'
-      }
+        password: credentials.password,
+        expiresAt: credentials.expiresAt
+      },
+      warning: 'Credentials expire in 5 minutes. Use them immediately.'
     }
   })
 }
