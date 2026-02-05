@@ -21,6 +21,7 @@ import { tenantRoutes } from './routes/tenants.js'
 import { healthRoutes } from './routes/health.js'
 import { setupRoutes } from './routes/setup.js'
 import { jobRoutes } from './routes/jobs.js'
+import { auditRoutes } from './routes/audit.js'
 import { initBackgroundJobs } from './services/background.js'
 
 // Load and validate environment variables
@@ -157,6 +158,7 @@ await fastify.register(setupRoutes, { prefix: '/api/setup' })
 await fastify.register(authRoutes, { prefix: '/api/auth' })
 await fastify.register(tenantRoutes, { prefix: '/api/tenants' })
 await fastify.register(vmRoutes, { prefix: '/api/tenants/:tenantId/vms' })
+await fastify.register(auditRoutes, { prefix: '/api/tenants/:tenantId' })
 await fastify.register(jobRoutes, { prefix: '/api/jobs' })
 
 // Root endpoint

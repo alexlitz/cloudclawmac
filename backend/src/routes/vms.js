@@ -17,17 +17,51 @@ const createVMSchema = z.object({
 })
 
 export async function vmRoutes(fastify, options) {
-  // List all VMs for a tenant
+  // List all VMs for a tenant with pagination
   fastify.get('/', {
     onRequest: [fastify.authenticate, fastify.requireTenantAccess]
   }, async (request, reply) => {
-    const result = await fastify.pg.query(
-      vmQueries.findByTenantId,
-      [request.tenantId]
-    )
+    const { page = 1, limit = 50, status = null } = request.query
+
+    // Build query with optional status filter
+    let query = 'SELECT * FROM vm_instances WHERE tenant_id = $1'
+    const params = [request.tenantId]
+    let paramIndex = 2
+
+    if (status) {
+      query += ` AND status = $${paramIndex}`
+      params.push(status)
+      paramIndex++
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+    params.push(limit, (page - 1) * limit)
+
+    // Get total count
+    let countQuery = 'SELECT COUNT(*) as total FROM vm_instances WHERE tenant_id = $1'
+    const countParams = [request.tenantId]
+    if (status) {
+      countQuery += ' AND status = $2'
+      countParams.push(status)
+    }
+
+    const [countResult, vmsResult] = await Promise.all([
+      fastify.pg.query(countQuery, countParams),
+      fastify.pg.query(query, params)
+    ])
+
+    const total = parseInt(countResult.rows[0].total)
 
     return {
-      vms: result.rows
+      vms: vmsResult.rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
     }
   })
 
